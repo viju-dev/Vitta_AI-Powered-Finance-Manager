@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
+        //  FIX: Added required external image domains
+    domains: [
+      "randomuser.me",
+      "img.clerk.com", //for Clerk user avatars
+    ],
       remotePatterns: [
         {
           protocol: 'https',
