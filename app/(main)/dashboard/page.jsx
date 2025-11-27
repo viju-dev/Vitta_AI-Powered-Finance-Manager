@@ -7,6 +7,7 @@ import AccountCard from "./_components/account-card";
 import { getCurrentBudget } from "@/actions/budget";
 import BudgetProgress from "./_components/budget-progress";
 import DashboardOverview from "./_components/transaction-overview";
+import BudgetSection from "./_components/BudgetSection"; 
 
 async function DashboardPage() {
   // const accounts = await getUserAccounts();
@@ -18,21 +19,21 @@ async function DashboardPage() {
   const defaultAccount = accounts?.find((account) => account.isDefault);
 
   // Get budget for default account
-  let budgetData = null;
-  if (defaultAccount) {
-    budgetData = await getCurrentBudget(defaultAccount.id);
-  }
+  // let budgetData = null;
+  // if (defaultAccount) {
+  //   budgetData = await getCurrentBudget(defaultAccount.id);
+  // }
 
   // const transactions = await getDashBoardData();
 
   return (
     <div className="space-y-8">
       {/* Budget Progress */}
+      {/* FIX : Wrap the slow/sequential budget section in Suspense */}
       {defaultAccount && (
-        <BudgetProgress
-          initialBudget={budgetData?.budget}
-          currentExpenses={budgetData?.currentExpenses || 0}
-        />
+        <Suspense fallback={<div>Loading Budget Progress...</div>}>
+            <BudgetSection defaultAccountId={defaultAccount.id} />
+        </Suspense>
       )}
 
       {/* Overview */}
