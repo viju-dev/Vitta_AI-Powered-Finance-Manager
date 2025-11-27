@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedUser } from "./auth";
 import { serializeTransaction } from "./serialize";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function createTransaction(data) {
   try {
@@ -119,7 +119,11 @@ function calculateNextRecurringDate(startDate, interval) {
 }
 
 export async function scanReciept(file) {
+  
   try {
+    // FIX: Initialize GenAI inside the function
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
