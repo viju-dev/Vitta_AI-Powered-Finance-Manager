@@ -53,7 +53,8 @@ const Header = async () => {
               </Button>
             </Link>
 
-            <Link href="/transaction/create" prefetch={false} > // FIX: triggering 'transaction/create' after login
+            {/* FIX: triggering 'transaction/create' after login */}
+            <Link href="/transaction/create" prefetch={false} > 
               <Button className="flex items-center gap-2">
                 <PenBox size={18} />
                 <span className="hidden md:inline">Add Transaction</span>
