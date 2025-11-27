@@ -9,7 +9,12 @@ import BudgetProgress from "./_components/budget-progress";
 import DashboardOverview from "./_components/transaction-overview";
 
 async function DashboardPage() {
-  const accounts = await getUserAccounts();
+  // const accounts = await getUserAccounts();
+  // FIX : Run independent fetches (accounts & transactions) in parallel to prevent vercel timeout
+  const [accounts, transactions] = await Promise.all([
+    getUserAccounts(),
+    getDashBoardData(),
+  ]);
   const defaultAccount = accounts?.find((account) => account.isDefault);
 
   // Get budget for default account
@@ -18,7 +23,7 @@ async function DashboardPage() {
     budgetData = await getCurrentBudget(defaultAccount.id);
   }
 
-  const transactions = await getDashBoardData();
+  // const transactions = await getDashBoardData();
 
   return (
     <div className="space-y-8">
