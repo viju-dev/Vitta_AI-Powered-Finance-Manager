@@ -11,18 +11,24 @@ export async function updateDefaultAccount(accountId) {
     const user = await getAuthenticatedUser();
 
     const account = await db.$transaction(async (tx) => {
+      console.log("Before updateMany");
       await tx.account.updateMany({
         where: { userId: user.id, isDefault: true },
         data: { isDefault: false },
       });
 
+      console.log("After updateMany, before update");
+
       return tx.account.update({
         where: { id: accountId, userId: user.id },
         data: { isDefault: true },
       });
+      console.log("After update1");
     });
 
-    revalidatePath("/dashboard");
+    console.log("After update2");
+
+    // revalidatePath("/dashboard");
     revalidatePath(`/account/${accountId}`);
 
     return { success: true, data: serializeTransaction(account) };

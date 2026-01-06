@@ -37,6 +37,7 @@ const AccountCard = ({ account }) => {
   useEffect(() => {
     if (updatedAccount?.success && !updateDefaultLoading) {
       toast.success("Default Account updated successfully");
+      router.refresh();
     }
   }, [updatedAccount, updateDefaultLoading]);
 
