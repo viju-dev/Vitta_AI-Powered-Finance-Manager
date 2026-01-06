@@ -25,12 +25,10 @@ const AccountCard = ({ account }) => {
     loading: updateDefaultLoading,
   } = useFetch(updateDefaultAccount);
 
-  const handleDefaultChange = async (event) => {
-    event.preventDefault(); // Prevent navigation
-
+  const handleDefaultChange = async (checked) => {
     if (isDefault) {
-      window.confirm("You need atleast 1 default account");
-      return; //don't allow toggling off the default account
+      toast.warning("You need at least one default account");
+      return;
     }
 
     await updateDefaultFn(id);
@@ -50,20 +48,23 @@ const AccountCard = ({ account }) => {
 
   return (
     <Card className="hover:shadow-md transition-shadow group relative">
-      <Link href={`/account/${id}`}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Link href={`/account/${id}`}>
           <CardTitle className="text-sm font-medium capitalize">
             {name}
           </CardTitle>
-          <Switch
-            checked={isDefault}
-            onClick={handleDefaultChange}
-            disabled={updateDefaultLoading || isDefault}
-          />
-          {updateDefaultLoading && (
-            <span className="ml-2 text-sm text-gray-500">Updating...</span>
-          )}
-        </CardHeader>
+        </Link>
+        <Switch
+          checked={isDefault}
+          onCheckedChange={handleDefaultChange}
+          disabled={updateDefaultLoading || isDefault}
+        />
+
+        {updateDefaultLoading && (
+          <span className="ml-2 text-sm text-gray-500">Updating...</span>
+        )}
+      </CardHeader>
+      <Link href={`/account/${id}`}>
         <CardContent>
           <div className="text-2xl font-bold">
             ₹{parseFloat(balance).toFixed(2)}

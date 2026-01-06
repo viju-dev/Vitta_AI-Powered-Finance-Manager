@@ -5,21 +5,26 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedUser } from "./auth";
 import { serializeTransaction } from "./serialize";
 
+// wrapped update actions in db transaction
 export async function updateDefaultAccount(accountId) {
   try {
     const user = await getAuthenticatedUser();
 
-    await db.account.updateMany({
-      where: { userId: user.id, isDefault: true },
-      data: { isDefault: false },
-    });
+    const account = await db.$transaction(async (tx) => {
+      await tx.account.updateMany({
+        where: { userId: user.id, isDefault: true },
+        data: { isDefault: false },
+      });
 
-    const account = await db.account.update({
-      where: { id: accountId, userId: user.id },
-      data: { isDefault: true },
+      return tx.account.update({
+        where: { id: accountId, userId: user.id },
+        data: { isDefault: true },
+      });
     });
 
     revalidatePath("/dashboard");
+    revalidatePath(`/account/${accountId}`);
+
     return { success: true, data: serializeTransaction(account) };
   } catch (error) {
     return { success: false, error: error.message };
