@@ -1,6 +1,6 @@
-import arcjet, { detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import aj from "./lib/arcjet"; // 🔴 adjust path if needed
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -8,28 +8,20 @@ const isProtectedRoute = createRouteMatcher([
   "/transaction(.*)",
 ]);
 
-const aj = arcjet({
-  key: process.env.ARCJET_KEY,
-  rules: [
-    shield({ mode: "LIVE" }),
-    detectBot({
-      mode: "LIVE",
-      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP"],
-    }),
-  ],
-});
-
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
+  // ✅ Clerk MUST run first
   const { userId, redirectToSignIn } = auth();
 
+  // 🔐 Protect authenticated routes
   if (!userId && isProtectedRoute(req)) {
     return redirectToSignIn();
   }
 
-  const decision = aj.protect(req);
+  // 🛡️ ArcJet MUST be awaited
+  const decision = await aj.protect(req);
 
   if (decision.isDenied()) {
-    return new NextResponse("Forbidden", { status: 403 });
+    return new NextResponse("Too Many Requests", { status: 429 });
   }
 
   return NextResponse.next();
