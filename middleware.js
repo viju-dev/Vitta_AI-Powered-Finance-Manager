@@ -1,6 +1,6 @@
+import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import arcjet, { shield, detectBot } from "@arcjet/next";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -8,38 +8,47 @@ const isProtectedRoute = createRouteMatcher([
   "/transaction(.*)",
 ]);
 
+// Initialize arcjet middleware
 const aj = arcjet({
   key: process.env.ARCJET_KEY,
-  characteristics: ["userId"],
+  // characteristics: ["userId"], // Track based on Clerk userId
   rules: [
-    shield({ mode: "LIVE" }),
+    // Shield protection for content and security
+    shield({
+      mode: "LIVE", // will block requests. Use "DRY_RUN" to log only
+    }),
     detectBot({
+      // will block requests. Use "DRY_RUN" to log only
       mode: "LIVE",
-      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP"],
+      allow: [
+        "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
+        "GO_HTTP", // For Inngest
+        // See the full list at https://arcjet.com/bot-list
+      ],
     }),
   ],
 });
 
-export default clerkMiddleware(async (auth, req) => {
+// Initialize base Clerk middleware
+const clerk = clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
-  // Auth protection
   if (!userId && isProtectedRoute(req)) {
-    return auth().redirectToSignIn();
-  }
-
-  // Arcjet protection (CORRECT usage)
-  const decision = await aj.protect(req, {
-    userId: userId || undefined,
-  });
-
-  if (decision.isDenied()) {
-    return NextResponse.json({ error: "Access denied" }, { status: 429 });
+    const { redirectToSignIn } = await auth();
+    return redirectToSignIn();
   }
 
   return NextResponse.next();
 });
 
+// Chain middlewares - ArcJet runs first, then Clerk
+export default createMiddleware(aj, clerk);
+
 export const config = {
-  matcher: ["/((?!_next|.*\\..*).*)", "/(api|trpc)(.*)"],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
 };
