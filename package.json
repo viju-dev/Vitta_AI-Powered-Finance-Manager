@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "email": "email dev",
     "build": "next build",
     "start": "next start",
@@ -31,6 +31,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "inngest": "^3.29.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.469.0",
     "next": "15.1.11",
     "next-themes": "^0.4.4",
@@ -45,6 +47,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

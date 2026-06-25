@@ -80,7 +80,7 @@ export default function EmailTemplate({
               <div style={styles.stat}>
                 <Text style={styles.text}>Net</Text>
                 <Text style={styles.heading}>
-                ₹{data?.stats.totalIncome - data?.stats.totalExpenses.toFixed(1)}
+                ₹{(data?.stats.totalIncome - data?.stats.totalExpenses).toFixed(1)}
                 </Text>
               </div>
             </Section>
@@ -103,7 +103,7 @@ export default function EmailTemplate({
             {/* AI Insights */}
             {data?.insights && (
               <Section style={styles.section}>
-                <Heading style={styles.heading}>Welth Insights</Heading>
+                <Heading style={styles.heading}>Vitta Insights</Heading>
                 {data.insights.map((insight, index) => (
                   <Text key={index} style={styles.text}>
                     • {insight}
@@ -123,7 +123,7 @@ export default function EmailTemplate({
         <Preview>Budget Alert</Preview>
         <Body style={styles.body}>
           <Container style={styles.container}>
-            <Heading styles={styles.title}>Budget Alert</Heading>
+            <Heading style={styles.title}>Budget Alert</Heading>
             <Text style={styles.text}>Hello {userName}</Text>
             <Text style={styles.text}>
               You&rsquo;ve used {data?.percentageUsed.toFixed(1)}% of your

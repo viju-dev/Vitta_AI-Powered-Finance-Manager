@@ -23,23 +23,23 @@ export async function createAccount(data) {
     const shouldBeDefault =
       existingAccounts.length === 0 ? true : data.isDefault;
 
-    // If this account should be default, unset other default accounts
-    //maybe can us transaction property here if allset to undefault and new accout creatoin failed then ???
-    if (shouldBeDefault) {
-      await db.account.updateMany({
-        where: { userId: user.id, isDefault: true },
-        data: { isDefault: false },
-      });
-    }
+    // Use a transaction to atomically unset other defaults and create the new account
+    const account = await db.$transaction(async (tx) => {
+      if (shouldBeDefault) {
+        await tx.account.updateMany({
+          where: { userId: user.id, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
 
-    // Create new account
-    const account = await db.account.create({
-      data: {
-        ...data,
-        balance: balanceFloat,
-        userId: user.id,
-        isDefault: shouldBeDefault, // Override the isDefault based on our logic
-      },
+      return await tx.account.create({
+        data: {
+          ...data,
+          balance: balanceFloat,
+          userId: user.id,
+          isDefault: shouldBeDefault,
+        },
+      });
     });
 
     // Serialize the account before returning

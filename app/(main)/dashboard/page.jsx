@@ -4,10 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import React, { Suspense } from "react";
 import AccountCard from "./_components/account-card";
-import { getCurrentBudget } from "@/actions/budget";
-import BudgetProgress from "./_components/budget-progress";
-import DashboardOverview from "./_components/transaction-overview";
-import BudgetSection from "./_components/BudgetSection"; 
+import BudgetSection from "./_components/BudgetSection";
+import DashboardOverviewClient from "./_components/dashboard-overview-client";
 
 async function DashboardPage() {
   // const accounts = await getUserAccounts();
@@ -32,13 +30,13 @@ async function DashboardPage() {
       {/* FIX : Wrap the slow/sequential budget section in Suspense */}
       {defaultAccount && (
         <Suspense fallback={<div>Loading Budget Progress...</div>}>
-            <BudgetSection defaultAccountId={defaultAccount.id} />
+          <BudgetSection defaultAccountId={defaultAccount.id} />
         </Suspense>
       )}
 
       {/* Overview */}
       <Suspense fallback={"Loading Overview..."}>
-        <DashboardOverview
+        <DashboardOverviewClient
           accounts={accounts}
           transactions={transactions || []}
         />

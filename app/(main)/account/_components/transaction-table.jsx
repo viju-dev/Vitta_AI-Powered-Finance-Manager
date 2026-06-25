@@ -58,6 +58,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import { BarLoader } from "react-spinners";
 import { toast } from "sonner";
+import { exportTransactions } from "@/lib/export-utils";
+import { Download } from "lucide-react";
 
 const RECURRING_INTERVALS = {
   DAILY: "Daily",
@@ -80,7 +82,6 @@ const TransactionTable = ({ transactions }) => {
 
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const {
     loading: deleteLoading,
@@ -92,20 +93,20 @@ const TransactionTable = ({ transactions }) => {
   const handleSelect = (id) => {
     setSelectedIds((current) =>
       current.includes(id)
-        ? current.filter((item) => item != id)
-        : [...current, id]
+        ? current.filter((item) => item !== id)
+        : [...current, id],
     );
   };
 
   const handleSelectAll = () => {
     setSelectedIds((current) =>
-      current.length === filteredAndSortedTransactions.length
+      current.length === paginatedTransactions.length
         ? []
-        : filteredAndSortedTransactions.map((t) => t.id)
+        : paginatedTransactions.map((t) => t.id),
     );
   };
 
-  // Memoized filtered and sorted transactions
+  // Memoized filtered and sorted transactions (full list, not paginated)
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
 
@@ -113,7 +114,7 @@ const TransactionTable = ({ transactions }) => {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter((transaction) =>
-        transaction.description?.toLowerCase().includes(searchLower)
+        transaction.description?.toLowerCase().includes(searchLower),
       );
     }
 
@@ -147,22 +148,22 @@ const TransactionTable = ({ transactions }) => {
         default:
           comparison = 0;
       }
-      return sortConfig.direction == "asc" ? comparison : -comparison;
+      return sortConfig.direction === "asc" ? comparison : -comparison;
     });
 
-    setTotalPages(Math.ceil(result.length / ITEMS_PER_PAGE)); // calculate and set total pages every time data updated, refreshed  or filter applied
-    return result.slice(
+    return result;
+  }, [transactions, searchTerm, typeFilter, reccuringFilter, sortConfig]);
+
+  const totalPages = Math.ceil(
+    filteredAndSortedTransactions.length / ITEMS_PER_PAGE,
+  );
+
+  const paginatedTransactions = useMemo(() => {
+    return filteredAndSortedTransactions.slice(
       ITEMS_PER_PAGE * (currentPage - 1),
-      ITEMS_PER_PAGE * currentPage
-    ); // returning 10 items according to page number
-  }, [
-    transactions,
-    searchTerm,
-    typeFilter,
-    reccuringFilter,
-    sortConfig,
-    currentPage,
-  ]);
+      ITEMS_PER_PAGE * currentPage,
+    );
+  }, [filteredAndSortedTransactions, currentPage]);
 
   const handleSort = (field) => {
     setSortConfig((current) => ({
@@ -175,7 +176,7 @@ const TransactionTable = ({ transactions }) => {
   const handleBulkDelete = async () => {
     if (
       !window.confirm(
-        `Are you sure you want to delete ${selectedIds.length} transactions`
+        `Are you sure you want to delete ${selectedIds.length} transactions`,
       )
     ) {
       return;
@@ -194,7 +195,7 @@ const TransactionTable = ({ transactions }) => {
     if (error) {
       // We ensure that if the error doesn't have a message, we use a fallback
       toast.error(
-        error.message || "An error occurred while deleting transactions"
+        error.message || "An error occurred while deleting transactions",
       );
     }
   }, [error]);
@@ -206,6 +207,23 @@ const TransactionTable = ({ transactions }) => {
     setSelectedIds([]);
   };
 
+  const handleExport = (format) => {
+    const rowsToExport = filteredAndSortedTransactions.length
+      ? filteredAndSortedTransactions
+      : transactions;
+
+    try {
+      exportTransactions({
+        transactions: rowsToExport,
+        format,
+        fileName: `transactions-${format}`,
+      });
+      toast.success(`Transactions exported as ${format.toUpperCase()}`);
+    } catch (error) {
+      toast.error(error.message || "Export failed");
+    }
+  };
+
   const pageHandler = (value) => {
     const pageNo = currentPage + value;
 
@@ -214,7 +232,7 @@ const TransactionTable = ({ transactions }) => {
     if (
       selectedIds.length > 0 &&
       !window.confirm(
-        `Proceeding to Page ${pageNo} will clear your selection. Continue?`
+        `Proceeding to Page ${pageNo} will clear your selection. Continue?`,
       )
     ) {
       return;
@@ -291,6 +309,26 @@ const TransactionTable = ({ transactions }) => {
               <X className="h-4 w-5" />
             </Button>
           )}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                Export CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                Export Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                Export PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -303,9 +341,8 @@ const TransactionTable = ({ transactions }) => {
                 <Checkbox
                   onCheckedChange={handleSelectAll}
                   checked={
-                    selectedIds.length ===
-                      filteredAndSortedTransactions.length &&
-                    filteredAndSortedTransactions.length > 0
+                    selectedIds.length === paginatedTransactions.length &&
+                    paginatedTransactions.length > 0
                   }
                 />
               </TableHead>
@@ -357,7 +394,7 @@ const TransactionTable = ({ transactions }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedTransactions.length === 0 ? (
+            {paginatedTransactions.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -367,7 +404,7 @@ const TransactionTable = ({ transactions }) => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredAndSortedTransactions.map((transaction) => (
+              paginatedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>
                     <Checkbox
@@ -423,7 +460,7 @@ const TransactionTable = ({ transactions }) => {
                                 {" "}
                                 {format(
                                   new Date(transaction.nextRecurringDate),
-                                  "PP"
+                                  "PP",
                                 )}
                               </div>
                             </div>
@@ -448,7 +485,7 @@ const TransactionTable = ({ transactions }) => {
                         <DropdownMenuItem
                           onClick={() =>
                             router.push(
-                              `/transaction/create?edit=${transaction.id}`
+                              `/transaction/create?edit=${transaction.id}`,
                             )
                           }
                         >

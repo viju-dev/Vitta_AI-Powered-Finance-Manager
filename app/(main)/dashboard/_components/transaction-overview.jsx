@@ -34,7 +34,7 @@ const DashboardOverview = ({ accounts, transactions }) => {
   );
 
   const recentTransactions = accountTransactions
-    .sort((a, b) => new Date(b.date) - a.date)
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
   //Calculate expense breakdownfor current month

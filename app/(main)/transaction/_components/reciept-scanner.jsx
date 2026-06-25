@@ -61,12 +61,12 @@ const RecieptScanner = ({ onScanComplete }) => {
         {scanRecieptLoading ? (
           <>
             <Loader2 className="mr-2 animate-spin" />
-            <span>Scanning Reciept...</span>
+            <span>Scanning Receipt...</span>
           </>
         ) : (
           <>
             <Camera className="mr-2" />
-            <span>Scan Recieptwith AI</span>
+            <span>Scan Receipt with AI</span>
           </>
         )}
       </Button>

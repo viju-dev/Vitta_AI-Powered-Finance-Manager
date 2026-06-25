@@ -1,10 +1,10 @@
 export const serializeTransaction = (obj) => {
     const serialized = { ...obj };
   
-    if (obj.balance) {
+    if (obj.balance != null) {
       serialized.balance = obj.balance.toNumber();
     }
-    if (obj.amount) {
+    if (obj.amount != null) {
       serialized.amount = obj.amount.toNumber();
     }
   

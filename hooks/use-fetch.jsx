@@ -1,10 +1,9 @@
+import { useState } from "react";
 import { toast } from "sonner";
-
-const { useState } = require("react");
 
 const useFetch = (cb) => {
   const [data, setData] = useState(undefined);
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fn = async (...args) => {
@@ -14,15 +13,13 @@ const useFetch = (cb) => {
     try {
       const response = await cb(...args);
 
-      console.log(response);
       if (response && !response.success) {
-        throw new Error(response.error?.message || "Unknown Error Occurred ");
+        throw new Error(response.error || "Unknown Error Occurred");
       }
       setData(response);
       setError(null);
     } catch (error) {
       setError(error);
-      console.log(error);
       toast.error(error.message);
     } finally {
       setLoading(false);
